@@ -6,6 +6,7 @@ class StorageService extends GetxService {
 
   static const String _cachedTracksKey = 'cached_tracks_list';
   static const String _lastCacheTimeKey = 'last_cache_time';
+  static const String _favoriteTracksKey = 'favorite_tracks_list';
 
   Future<StorageService> init() async {
     await GetStorage.init();
@@ -28,10 +29,36 @@ class StorageService extends GetxService {
     try {
       final List<dynamic>? rawList = _box.read<List<dynamic>>(_cachedTracksKey);
       if (rawList != null) {
-        return rawList.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        return rawList
+            .map((item) => Map<String, dynamic>.from(item as Map))
+            .toList();
       }
     } catch (e) {
       Get.log('Error reading cached tracks: $e');
+    }
+    return [];
+  }
+
+  /// Save favorite tracks JSON list to local storage
+  Future<void> saveFavorites(List<Map<String, dynamic>> favoritesJson) async {
+    try {
+      await _box.write(_favoriteTracksKey, favoritesJson);
+    } catch (e) {
+      Get.log('Error saving favorite tracks: $e');
+    }
+  }
+
+  /// Get stored favorite tracks JSON list
+  List<Map<String, dynamic>> getFavorites() {
+    try {
+      final List<dynamic>? rawList = _box.read<List<dynamic>>(_favoriteTracksKey);
+      if (rawList != null) {
+        return rawList
+            .map((item) => Map<String, dynamic>.from(item as Map))
+            .toList();
+      }
+    } catch (e) {
+      Get.log('Error reading favorite tracks: $e');
     }
     return [];
   }

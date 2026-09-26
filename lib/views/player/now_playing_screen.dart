@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controllers/favorite_controller.dart';
 import '../../controllers/player_controller.dart';
 import '../../core/constants/app_colors.dart';
 import '../widgets/seek_bar.dart';
@@ -31,6 +32,24 @@ class NowPlayingScreen extends StatelessWidget {
             color: AppColors.textSecondary,
           ),
         ),
+        actions: [
+          Obx(() {
+            final track = playerController.currentTrack.value;
+            if (track == null) return const SizedBox.shrink();
+            final favoriteController = Get.find<FavoriteController>();
+            final isFav = favoriteController.isFavorite(track.id);
+
+            return IconButton(
+              icon: Icon(
+                isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: isFav ? Colors.redAccent : AppColors.textSecondary,
+                size: 26,
+              ),
+              onPressed: () => favoriteController.toggleFavorite(track),
+            );
+          }),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Obx(() {
         final track = playerController.currentTrack.value;

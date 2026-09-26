@@ -4,7 +4,7 @@ class ApiConstants {
 
   // API Client ID configured via --dart-define=JAMENDO_CLIENT_ID=your_id
   // This ensures no hardcoded API secrets are committed to version control.
-  static const String _envClientId = String.fromEnvironment('JAMENDO_CLIENT_ID');
+  static const String _envClientId = String.fromEnvironment('bc66595a');
 
   // Fallback Client ID for evaluation / testing
   static const String _defaultClientId = 'bc66595a';
@@ -20,5 +20,5 @@ class ApiConstants {
   static const int defaultLimit = 20;
 
   // Timeouts
-  static const Duration timeoutDuration = Duration(seconds: 15);
+  static const Duration timeoutDuration = Duration(seconds: 60);
 }

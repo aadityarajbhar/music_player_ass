@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controllers/favorite_controller.dart';
 import '../../controllers/player_controller.dart';
 import '../../controllers/track_controller.dart';
 import '../../core/constants/app_colors.dart';
+import '../favorite_screen/favorite_screen.dart';
 import '../search/search_screen.dart';
 import '../widgets/mini_player.dart';
 import '../widgets/state_widgets.dart';
@@ -15,6 +17,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final trackController = Get.find<TrackController>();
     final playerController = Get.find<PlayerController>();
+    final favoriteController = Get.find<FavoriteController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -35,14 +38,21 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(width: 12),
             const Text(
               'Jamendo Beats',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.favorite_rounded,
+              color: Colors.redAccent,
+              size: 24,
+            ),
+            onPressed: () {
+              Get.to(() => const FavoriteScreen());
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search_rounded, size: 26),
             onPressed: () {
@@ -62,15 +72,26 @@ class HomeScreen extends StatelessWidget {
                   return Container(
                     width: double.infinity,
                     color: Colors.amber.shade900.withValues(alpha: 0.8),
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 16,
+                    ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.wifi_off_rounded, color: Colors.white, size: 16),
+                        Icon(
+                          Icons.wifi_off_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                         SizedBox(width: 8),
                         Text(
                           'You are offline. Showing cached tracks.',
-                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -82,14 +103,17 @@ class HomeScreen extends StatelessWidget {
               // Main Song List
               Expanded(
                 child: Obx(() {
-                  if (trackController.isLoading.value && trackController.tracks.isEmpty) {
+                  if (trackController.isLoading.value &&
+                      trackController.tracks.isEmpty) {
                     return const LoadingWidget(message: 'Discovering music...');
                   }
 
-                  if (trackController.errorMessage.value.isNotEmpty && trackController.tracks.isEmpty) {
+                  if (trackController.errorMessage.value.isNotEmpty &&
+                      trackController.tracks.isEmpty) {
                     return ErrorStateWidget(
                       message: trackController.errorMessage.value,
-                      onRetry: () => trackController.fetchTracks(isRefresh: true),
+                      onRetry:
+                          () => trackController.fetchTracks(isRefresh: true),
                     );
                   }
 
@@ -102,7 +126,8 @@ class HomeScreen extends StatelessWidget {
 
                   return RefreshIndicator(
                     color: AppColors.primary,
-                    onRefresh: () => trackController.fetchTracks(isRefresh: true),
+                    onRefresh:
+                        () => trackController.fetchTracks(isRefresh: true),
                     child: ListView.builder(
                       controller: trackController.scrollController,
                       padding: const EdgeInsets.only(top: 8, bottom: 90),
@@ -123,7 +148,8 @@ class HomeScreen extends StatelessWidget {
                               );
                             }
 
-                            if (!trackController.hasMore.value && trackController.tracks.isNotEmpty) {
+                            if (!trackController.hasMore.value &&
+                                trackController.tracks.isNotEmpty) {
                               return const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 20),
                                 child: Center(
@@ -145,12 +171,19 @@ class HomeScreen extends StatelessWidget {
                         final track = trackController.tracks[index];
 
                         return Obx(() {
-                          final currentTrack = playerController.currentTrack.value;
-                          final isCurrentlyPlaying = currentTrack?.id == track.id;
+                          final currentTrack =
+                              playerController.currentTrack.value;
+                          final isCurrentlyPlaying =
+                              currentTrack?.id == track.id;
+                          final isFav = favoriteController.isFavorite(track.id);
 
                           return TrackTile(
                             track: track,
                             isCurrentlyPlaying: isCurrentlyPlaying,
+                            isFavorite: isFav,
+                            onFavoriteToggle: () {
+                              favoriteController.toggleFavorite(track);
+                            },
                             onTap: () {
                               playerController.playTrack(
                                 track,
@@ -168,10 +201,7 @@ class HomeScreen extends StatelessWidget {
           ),
 
           // Mini Player Widget at bottom
-          const Align(
-            alignment: Alignment.bottomCenter,
-            child: MiniPlayer(),
-          ),
+          const Align(alignment: Alignment.bottomCenter, child: MiniPlayer()),
         ],
       ),
     );

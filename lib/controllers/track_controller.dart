@@ -33,8 +33,11 @@ class TrackController extends GetxController {
     super.onInit();
     _storageService = Get.find<StorageService>();
     _setupScrollListener();
-    fetchTracks(isRefresh: true);
+    // Fetch tracks asynchronously without blocking UI
+    Future.microtask(() => fetchTracks(isRefresh: true));
   }
+
+
 
   /// Attach scroll listener to detect bottom scroll threshold
   void _setupScrollListener() {
@@ -107,7 +110,10 @@ class TrackController extends GetxController {
 
   /// Load next page for pagination (prevents duplicate calls while loading)
   Future<void> loadNextPage() async {
-    if (isFetchingMore.value || !hasMore.value || isLoading.value || isOfflineMode.value) {
+    if (isFetchingMore.value ||
+        !hasMore.value ||
+        isLoading.value ||
+        isOfflineMode.value) {
       return;
     }
 
@@ -150,7 +156,16 @@ class TrackController extends GetxController {
       hasMore.value = false;
       errorMessage.value = '';
     } else {
-      errorMessage.value = errorMsg;
+      // Format error message for display
+      String displayError = errorMsg;
+      if (errorMsg.contains('TimeoutException')) {
+        displayError =
+            'Request timed out. Check your internet connection and try again.';
+      } else if (errorMsg.contains('No internet')) {
+        displayError =
+            'No internet connection. Check your network and try again.';
+      }
+      errorMessage.value = displayError;
     }
   }
 

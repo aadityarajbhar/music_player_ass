@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -16,7 +17,7 @@ class JamendoApiProvider {
   final http.Client _httpClient;
 
   JamendoApiProvider({http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+    : _httpClient = httpClient ?? http.Client();
 
   /// Fetch list of tracks from Jamendo with pagination (limit & offset)
   Future<List<Track>> getTracks({
@@ -70,22 +71,32 @@ class JamendoApiProvider {
           final List<dynamic> results = body['results'] ?? [];
           return results.map((json) => Track.fromJson(json)).toList();
         } else {
-          final errorMsg = headers?['error_message'] ?? 'Failed to fetch tracks';
+          final errorMsg =
+              headers?['error_message'] ?? 'Failed to fetch tracks';
           throw JamendoApiException('API Error: $errorMsg');
         }
       } else {
         throw JamendoApiException(
-            'Server responded with status code: ${response.statusCode}');
+          'Server responded with status code: ${response.statusCode}',
+        );
       }
+    } on TimeoutException {
+      throw JamendoApiException(
+        'Connection timed out. Please check your internet connection.',
+      );
     } on SocketException {
-      throw JamendoApiException('No internet connection. Please check your network.');
+      throw JamendoApiException(
+        'No internet connection. Please check your network.',
+      );
     } on http.ClientException {
       throw JamendoApiException('Network error occurred. Please try again.');
     } on FormatException {
       throw JamendoApiException('Invalid data format received from server.');
     } catch (e) {
       if (e is JamendoApiException) rethrow;
-      throw JamendoApiException('An unexpected error occurred: ${e.toString()}');
+      throw JamendoApiException(
+        'An unexpected error occurred: ${e.toString()}',
+      );
     }
   }
 }
